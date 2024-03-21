@@ -32,14 +32,7 @@ class Product(BaseModel):
 #/////////////////////////////////////////////////////////////////////////////////////
 
 
-mydb = mysql.connector.connect(
-    host="localhost",
-    user="root",
-    password="Ksienedine777!",
-    database="products"
-)
 
-mycursor = mydb.cursor()
 
 
 #//////////////////////////////////////////////////////////////////////////////////////
@@ -57,16 +50,18 @@ def get_sale_price(product: Product):
 async def add_product(product: Product):
     product_dict = product.model_dump()
 
-    product_dict.update({"sale_price": f"{get_sale_price(product) :.2f}",})
+    product_dict.update({"sale_price": round(get_sale_price(product), 2)})
     
-    keys, values = zip(*product_dict.items())
+    _, values = zip(*product_dict.items())
 
-    sql = f"INSERT INTO db {keys} VALUES (%s, %s, %s, %s, %s)"
-    val = values
-    
-    mycursor.execute(sql, val)
+    sql = "INSERT INTO db (name, description, price, tax, sale_price) VALUES (%s, %s, %s, %s, %s)"
+   
+    mycursor.execute(sql, values)
 
-    return mydb.commit()
+    try:
+        mydb.commit()
+        return print("Quarry executed successfully")
+    except: return print("Quarry run failed")
 
 
 
