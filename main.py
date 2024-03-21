@@ -2,12 +2,13 @@ from fastapi import FastAPI
 from pydantic import BaseModel
 import uvicorn
 
+import mysql.connector
+
 
 app = FastAPI()
 
 
 class Product(BaseModel):
-    id: int | None = None
     name: str
     description: str
     price: float
@@ -27,13 +28,22 @@ class Product(BaseModel):
         }
     }
 
-products_list = []
+
+#/////////////////////////////////////////////////////////////////////////////////////
 
 
-class AutoIncrementId:
-    id = 0
-    def __init__(self):
-        AutoIncrementId.id += 1
+mydb = mysql.connector.connect(
+    host="localhost",
+    user="root",
+    password="Ksienedine777!",
+    database="products"
+)
+
+mycursor = mydb.cursor()
+
+
+#//////////////////////////////////////////////////////////////////////////////////////
+
 
 
 
@@ -43,33 +53,20 @@ def get_sale_price(product: Product):
 
 
 
-def get_product_id():
-    products_id = []
-
-    for product in products_list:
-        products_id.append(product["id"])
-
-    return products_id
-
-
-
-@app.get("/products")
-async def get_products():
-    return products_list
-
-
-
 @app.post("/products/add/")
 async def add_product(product: Product):
     product_dict = product.model_dump()
 
-    product_dict.update({
-        "sale_price": f"{get_sale_price(product) :.2f}",
-        "id": AutoIncrementId().id
-        })
+    product_dict.update({"sale_price": f"{get_sale_price(product) :.2f}",})
+    
+    keys, values = zip(*product_dict.items())
 
-    products_list.append(product_dict)
-    return products_list
+    sql = f"INSERT INTO db {keys} VALUES (%s, %s, %s, %s, %s)"
+    val = values
+    
+    mycursor.execute(sql, val)
+
+    return mydb.commit()
 
 
 
@@ -77,26 +74,25 @@ async def add_product(product: Product):
 async def edit_product(product: Product, id: int):
     product_dict = product.model_dump()
 
-    product_dict.update({
-        "sale_price": f"{get_sale_price(product) :.2f}",
-        "id": id
-        })
+    product_dict.update({"sale_price": f"{get_sale_price(product) :.2f}",})
 
-    product_id = get_product_id()
+    _, values = zip(*product_dict.items())
 
-    products_list[product_id.index(id)] = product_dict
+    sql = f"UPDATE db SET name = %s, description = %s, price = %s, tax = %s, sale_price = %s WHERE iddb = {id}"
+    val = values
 
-    return products_list
+    mycursor.execute(sql, val)
+
+    return mydb.commit() 
 
 
 
 @app.delete("/products/delete/{id}")
 async def delete_product(id: int):
-    product_id = get_product_id()
+    sql = f"DELETE FROM db WHERE iddb = {id}"
 
-    del products_list[product_id.index(id)]
-
-    return products_list
+    mycursor.execute(sql)
+    return mydb.commit()
 
 
 
