@@ -2,6 +2,9 @@ from fastapi import FastAPI
 from pydantic import BaseModel
 import uvicorn
 
+import os
+from dotenv import find_dotenv, load_dotenv
+
 import mysql.connector
 
 
@@ -29,14 +32,26 @@ class Product(BaseModel):
     }
 
 
+
 #/////////////////////////////////////////////////////////////////////////////////////
 
+dotenv_path = find_dotenv()
+load_dotenv(dotenv_path)
 
 
-
+def connect_db():
+    try:
+        mydb = mysql.connector.connect(
+            host=os.getenv("DATABASE_HOST"),
+            user=os.getenv("DATABASE_USER"),
+            password=os.getenv("DATABASE_PASSWORD"),
+            database=os.getenv("DATABASE_NAME")
+        )
+        mycursor = mydb.cursor()
+        return mydb, mycursor
+    except: return print("error connecting to database")
 
 #//////////////////////////////////////////////////////////////////////////////////////
-
 
 
 
@@ -49,13 +64,13 @@ def get_sale_price(product: Product):
 @app.post("/products/add/")
 async def add_product(product: Product):
     product_dict = product.model_dump()
-
     product_dict.update({"sale_price": round(get_sale_price(product), 2)})
-    
+
+
     _, values = zip(*product_dict.items())
 
-    sql = "INSERT INTO db (name, description, price, tax, sale_price) VALUES (%s, %s, %s, %s, %s)"
-   
+    sql = "INSERT INTO products (name, description, price, tax, sale_price) VALUES (%s, %s, %s, %s, %s)"
+    mydb, mycursor = connect_db()
     mycursor.execute(sql, values)
 
     try:
@@ -68,26 +83,31 @@ async def add_product(product: Product):
 @app.put("/products/edit/{id}")
 async def edit_product(product: Product, id: int):
     product_dict = product.model_dump()
-
-    product_dict.update({"sale_price": f"{get_sale_price(product) :.2f}",})
+    product_dict.update({"sale_price": round(get_sale_price(product), 2)})
 
     _, values = zip(*product_dict.items())
 
-    sql = f"UPDATE db SET name = %s, description = %s, price = %s, tax = %s, sale_price = %s WHERE iddb = {id}"
-    val = values
+    sql = f"UPDATE products SET name = %s, description = %s, price = %s, tax = %s, sale_price = %s WHERE id = {id}"
+    mydb, mycursor = connect_db()
+    mycursor.execute(sql, values)
 
-    mycursor.execute(sql, val)
-
-    return mydb.commit() 
+    try:
+        mydb.commit()
+        return print("Quarry executed successfully")
+    except: return print("Quarry run failed")
 
 
 
 @app.delete("/products/delete/{id}")
 async def delete_product(id: int):
-    sql = f"DELETE FROM db WHERE iddb = {id}"
-
+    sql = f"DELETE FROM products WHERE id = {id}"
+    mydb, mycursor = connect_db()
     mycursor.execute(sql)
-    return mydb.commit()
+
+    try:
+        mydb.commit()
+        return print("Quarry executed successfully")
+    except: print("Quarry run failed")
 
 
 
