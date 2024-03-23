@@ -1,64 +1,30 @@
 from fastapi import FastAPI
-from pydantic import BaseModel
 import uvicorn
-
-import os
-from dotenv import find_dotenv, load_dotenv
-
-import mysql.connector
+from database import connect_database, create_products_table
+from models import Product
 
 
 app = FastAPI()
 
 
-class Product(BaseModel):
-    name: str
-    description: str
-    price: float
-    tax: float
-    sale_price: float | None = None
+con, cur = connect_database()
 
-    model_config = {
-        "json_schema_extra": {
-            "examples": [
-                {
-                    "name": "Vodka",
-                    "description": "Bebida Alcoolica",
-                    "price": 11.00,
-                    "tax": 2.99
-                }
-            ]
-        }
-    }
-
-
-
-#/////////////////////////////////////////////////////////////////////////////////////
-
-dotenv_path = find_dotenv()
-load_dotenv(dotenv_path)
-
-
-def connect_db():
-    try:
-        mydb = mysql.connector.connect(
-            host=os.getenv("DATABASE_HOST"),
-            user=os.getenv("DATABASE_USER"),
-            password=os.getenv("DATABASE_PASSWORD"),
-            database=os.getenv("DATABASE_NAME")
-        )
-        mycursor = mydb.cursor()
-        return mydb, mycursor
-    except: return print("error connecting to database")
-
-#//////////////////////////////////////////////////////////////////////////////////////
-
+create_products_table(cur)
 
 
 def get_sale_price(product: Product):
     sale_price = product.price + product.tax
     return sale_price
 
+
+@app.get("/products/list")
+async def list_products():
+    sql = "SELECT * FROM products"
+    cur.execute(sql)
+
+    rows = cur.fetchall()
+
+    return rows
 
 
 @app.post("/products/add/")
@@ -69,15 +35,22 @@ async def add_product(product: Product):
 
     _, values = zip(*product_dict.items())
 
-    sql = "INSERT INTO products (name, description, price, tax, sale_price) VALUES (%s, %s, %s, %s, %s)"
-    mydb, mycursor = connect_db()
-    mycursor.execute(sql, values)
+    sql = """INSERT INTO products (
+             name, 
+             description, 
+             price, 
+             tax, 
+             sale_price
+        )    
+             VALUES (?, ?, ?, ?, ?)
+    """
+    cur.execute(sql, values)
 
     try:
-        mydb.commit()
-        return print("Quarry executed successfully")
-    except: return print("Quarry run failed")
-
+        con.commit()
+        return print("Query executed successfully")
+    except: 
+        return print("Query run failed")
 
 
 @app.put("/products/edit/{id}")
@@ -87,28 +60,36 @@ async def edit_product(product: Product, id: int):
 
     _, values = zip(*product_dict.items())
 
-    sql = f"UPDATE products SET name = %s, description = %s, price = %s, tax = %s, sale_price = %s WHERE id = {id}"
-    mydb, mycursor = connect_db()
-    mycursor.execute(sql, values)
+    sql = f"""
+    UPDATE products 
+    SET name = ?, 
+        description = ?, 
+        price = ?, 
+        tax = ?, 
+        sale_price = ? 
+        WHERE id = {id}
+    """
+    cur.execute(sql, values)
 
     try:
-        mydb.commit()
-        return print("Quarry executed successfully")
-    except: return print("Quarry run failed")
-
+        con.commit()
+        return print("Query executed successfully")
+    except: 
+        return print("Query run failed")
 
 
 @app.delete("/products/delete/{id}")
 async def delete_product(id: int):
-    sql = f"DELETE FROM products WHERE id = {id}"
-    mydb, mycursor = connect_db()
-    mycursor.execute(sql)
+    sql = f"""DELETE FROM products 
+              WHERE id = {id}
+        """
+    cur.execute(sql)
 
     try:
-        mydb.commit()
-        return print("Quarry executed successfully")
-    except: print("Quarry run failed")
-
+        con.commit()
+        return print("Query executed successfully")
+    except: 
+        return print("Query run failed")
 
 
 if __name__ == "__main__":
