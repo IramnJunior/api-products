@@ -13,13 +13,16 @@ def connect_database():
 def create_products_table(cur):
     sql = """
         CREATE TABLE IF NOT EXISTS products(
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        name VARCHAR(45),
-        description VARCHAR(999),
-        price FLOAT(5),
-        tax FLOAT(5),
-        sale_price FLOAT(5)
-        )
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name VARCHAR(45),
+            description VARCHAR(999),
+            price FLOAT(5),
+            tax FLOAT(5),
+            sale_price FLOAT(5)
+            )
     """
-    cur.execute(sql)
-    return None
+    try:
+        cur.execute(sql)
+        return print("table created successfully")
+    except ValueError:
+        return  print("table was not created due to an error")
