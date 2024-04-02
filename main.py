@@ -1,5 +1,6 @@
 from fastapi import FastAPI, Request
 import uvicorn
+from os import getenv
 
 from database import connect_database, create_products_table
 from helpers import get_sale_price, get_row_products, get_column_products, convert_array_to_dict
@@ -29,7 +30,7 @@ app.mount("/templates/style", StaticFiles(directory="templates/style"), name="st
 
 templates = Jinja2Templates(directory="templates")
 
-@app.get("/products/list", response_class=HTMLResponse)
+@app.get("/", tags=["Root"], response_class=HTMLResponse)
 async def list_products(request: Request):
     Product = convert_array_to_dict(get_row_products(), get_column_products())
     return templates.TemplateResponse(
@@ -103,4 +104,5 @@ async def delete_product(id: int):
 
 
 if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    port = int(getenv("PORT", 8000))
+    uvicorn.run("app.main:app", host="0.0.0.0", port=port, reload=True)
