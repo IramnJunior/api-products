@@ -2,8 +2,8 @@ from fastapi import FastAPI, Request
 from os import getenv
 import uvicorn
 
-from database import connect_database, create_products_table
-from helpers import get_sale_price, get_row_products, get_column_products, convert_array_to_dict
+from connect_database import supabase
+from helpers import get_sale_price, get_table_data
 from models import Product
 
 from fastapi.templating import Jinja2Templates
@@ -22,90 +22,70 @@ app.add_middleware(
     allow_headers=["*"]
 )
 
-con, cur = connect_database()
-
-create_products_table(cur)
-
-app.mount("/templates/style", StaticFiles(directory="templates/style"), name="styles")
+app.mount("/templates/style", StaticFiles(directory="templates/style"), name="style")
+app.mount("/templates/scripts", StaticFiles(directory="templates/scripts"), name="scripts")
 
 templates = Jinja2Templates(directory="templates")
 
-@app.get("/")
-async def hello():
-    return {"message": "hello word"}
 
-# @app.get("/", tags=["Root"], response_class=HTMLResponse)
-# async def list_products(request: Request):
-#     Product = convert_array_to_dict(get_row_products(), get_column_products())
-#     return templates.TemplateResponse(
-#         request=request, name="index.html", context={"products": Product}
-#     )
+@app.get("/home/", response_class=HTMLResponse)
+async def home(request: Request):
+    return templates.TemplateResponse(
+        request=request, name="index.html"
+    )
 
 
-@app.post("/products/add/")
+@app.get("/home/products", response_class=HTMLResponse)
+async def home_products(request: Request):
+    return templates.TemplateResponse(
+        request=request, name="home-products.html"
+    )
+
+
+@app.get("/get/credentials/")
+async def get_user_and_password():
+    data = get_table_data("Logins")
+    return data
+
+
+@app.get("/get/products/")
+async def get_products():
+    data = get_table_data("products-db")
+    return data
+
+
+@app.post("/add/")
 async def add_product(product: Product):
     product_dict = product.model_dump()
     product_dict.update({"sale_price": round(get_sale_price(product), 2)})
 
-    sql = """
-    INSERT INTO 
-        products 
-            (name, description, price, tax, sale_price)
-        VALUES 
-            (?, ?, ?, ?, ?)
-    """ 
-    _, values = zip(*product_dict.items())
-    cur.execute(sql, values)
-
     try:
-        con.commit()
+        supabase.table("products-db").insert(product_dict).execute()
         return print("Query executed successfully")
-    except: 
+    except ValueError: 
         return print("Query run failed")
 
 
-@app.put("/products/edit/{id}")
+@app.put("/edit/{id}")
 async def edit_product(product: Product, id: int):
     product_dict = product.model_dump()
     product_dict.update({"sale_price": round(get_sale_price(product), 2)})
 
-    _, values = zip(*product_dict.items())
-
-    sql = f"""
-        UPDATE 
-            products 
-        SET 
-            name = ?, 
-            description = ?, 
-            price = ?, 
-            tax = ?, 
-            sale_price = ?  
-        WHERE 
-            id = {id}
-    """
-    cur.execute(sql, values)
-
     try:
-        con.commit()
+        supabase.table("products-db").update(product_dict).eq("id", id).execute()
         return print("Query executed successfully")
     except: 
         return print("Query run failed")
 
 
-@app.delete("/products/delete/{id}")
+@app.delete("/delete/{id}")
 async def delete_product(id: int):
-    sql = f"""
-        DELETE FROM products 
-        WHERE id = {id}
-    """
-    cur.execute(sql)
-
     try:
-        con.commit()
+        supabase.table("products-db").delete().eq("id", id).execute()
         return print("Query executed successfully")
     except: 
         return print("Query run failed")
-    
+
 
 HOST = '0.0.0.0'
 PORT = int(getenv("PORT", 8000))

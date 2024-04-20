@@ -1,0 +1,90 @@
+@import url('https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&display=swap');
+
+body nav span {
+    font-family:'Lato', Courier, monospace;
+    font-weight: 600;
+    font-size: 20px;
+    padding: 6px;
+}
+
+
+.grid-items {
+    display: grid;
+    grid-template-columns: 300px 140px 300px;
+    grid-template-rows: 500px;
+    grid-template-areas: 
+    "table-action buttons table-infos";
+    margin: auto;
+    align-content: center;
+}
+
+
+#divTable {
+    display: grid;
+}
+
+
+.valueInput {
+    width: 55px;
+}
+
+
+#addInfos {
+    display: none;
+    grid-area: table-action;
+    justify-content: start;
+    align-content: center;
+} 
+
+
+label {
+    width: 90px;
+} 
+
+
+input {
+    margin: 2px;
+}
+
+
+#editInfos {
+    display: none;
+    grid-area: table-action;
+    justify-content: start;
+    align-content: center;
+} 
+
+
+.InputClass {
+    width: 35px;    
+}
+
+
+#deleteInfos{
+    display: none;
+    justify-content: center;
+    align-content: center;
+    
+}
+
+
+.buttons {
+    display: grid;
+    grid-area: buttons;
+    justify-content: center;
+    align-content: center;
+}
+.buttons label {
+    width: 130px;
+}
+
+
+.table-infos {
+    grid-area: table-infos;
+    margin-left: 15px;
+    overflow: hidden;
+    overflow-y: scroll;
+}
+p {
+    margin-bottom: 50px;
+}
