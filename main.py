@@ -38,7 +38,7 @@ async def home(request: Request):
 @app.get("/home/products", response_class=HTMLResponse)
 async def home_products(request: Request):
     return templates.TemplateResponse(
-        request=request, name="home-products.html"
+        request=request, name="index-products.html"
     )
 
 

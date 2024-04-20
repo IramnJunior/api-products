@@ -13,18 +13,20 @@ data.forEach(data => {
         deleteInfos.style.display = "none";
 
 
+        const id = document.getElementById("input-id-edit").value;
+        const name = document.getElementById("name-id-add").value;
+        const description = document.getElementById("description-id-add").value;
+        const price = document.getElementById("price-id-add").value;
+        const price_tax = document.getElementById("price-tax-id-add").value;
+
+
     switch(selected) 
     {
         case "Adicionar":
             addInfos.style.display = "grid";
             
-            document.getElementById("sentButton").onclick = async function sent_products()
+            document.getElementById("sentButton").onclick = async function sent_products() 
             {
-                const name = document.getElementById("name-id-add").value;
-                const description = document.getElementById("description-id-add").value;
-                const price = document.getElementById("price-id-add").value;
-                const price_tax = document.getElementById("price-tax-id-add").value;
-
                 await axios.post("/add/", {
                     name: `${name}`,
                     description: `${description}`,
@@ -40,10 +42,8 @@ data.forEach(data => {
                     console.log(error);
                 })
 
-                get_products_data()
+                get_products_data();
             }
-
-            
             break;
 
         case "Editar":
@@ -51,12 +51,6 @@ data.forEach(data => {
 
             document.getElementById("sentButton").onclick = async function sent_products()
             {
-                const id = document.getElementById("input-id-edit").value;
-                const name = document.getElementById("name-id-edit").value;
-                const description = document.getElementById("description-id-edit").value;
-                const price = document.getElementById("price-id-edit").value;
-                const price_tax = document.getElementById("price-tax-id-edit").value;
-
                 await axios.put(`/edit/${id}`, {
                     name: `${name}`,
                     description: `${description}`,
@@ -66,16 +60,14 @@ data.forEach(data => {
                     headers: {
                         "Content-Type": "application/json"
                     }
-                }).then(response => {
-                    console.log("item edited successfully");
-                }).catch(error => {
-                    console.log(error);
-                })
+                    }).then(response => {
+                        console.log("item edited successfully");
+                    }).catch(error => {
+                        console.log(error);
+                    })
 
-                get_products_data()
+                get_products_data();
             }
-
-            
             break;
 
         case "Apagar":
@@ -83,20 +75,16 @@ data.forEach(data => {
 
             document.getElementById("sentButton").onclick = async function sent_products()
             {
-                const id = document.getElementById("input-id-delete").value;
-
                 await axios.delete(`/delete/${id}`)
-                           .then(response => {
-                            console.log(`Deleted data with ID: ${id}`);
-                           })
-                           .catch(error => {
-                            console.log(error)
-                           })
+                    .then(response => {
+                    console.log(`Deleted data with ID: ${id}`);
+                    })
+                    .catch(error => {
+                    console.log(error);
+                    })
 
-                get_products_data()
+                get_products_data();
             }
-
-            
             break;
     }
     })
@@ -105,22 +93,22 @@ data.forEach(data => {
 
 async function get_products_data() {
     await axios.get("/get/products/")
-    .then(response => {
-        const data = response.data
-        document.getElementById('products-id').innerHTML = ''
-        for (let product of data) {
-            document.getElementById('products-id').innerHTML += `
-                <p>
-                    Id: ${product['id']}<br>
-                    Name: ${product['name']}<br>
-                    Description: ${product['description']}<br>
-                    Price: ${product['price']}<br>
-                    Tax: ${product['tax']}<br>
-                    Sale Price: ${product['sale_price']}<br>
-                </p>
-            `
-        }
-    })
+        .then(response => {
+            const data = response.data;
+            document.getElementById('products-id').innerHTML = ''
+            for (let product of data) {
+                document.getElementById('products-id').innerHTML += `
+                    <p>
+                        Id: ${product['id']}<br>
+                        Name: ${product['name']}<br>
+                        Description: ${product['description']}<br>
+                        Price: ${product['price']}<br>
+                        Tax: ${product['tax']}<br>
+                        Sale Price: ${product['sale_price']}<br>
+                    </p>
+                `
+            }
+        })
 }
 
-get_products_data()
+get_products_data();

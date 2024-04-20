@@ -18,13 +18,13 @@ async function send_informations() {
 }
 
 
-const dict_data = (response) => {
+async function dict_response_data (response) {
     data = response[0];
     return data;
 }
 
 
-const verify_credentials = (userForms, passwordForms, userDB, passwordDB) => {
+async function verify_credentials (userForms, passwordForms, userDB, passwordDB) {
     if ((userForms == userDB) && (passwordForms == passwordDB)) {
         window.location.href = "/home/products";
     } else {
