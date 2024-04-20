@@ -1,5 +1,5 @@
 async function send_informations() {
-   await axios.get("https://products-manager-ten.vercel.app/get/credentials/")
+   await axios.get("/get/credentials/")
         .then(response => {
 
             const response_data = dict_data(response.data);
@@ -26,7 +26,7 @@ const dict_data = (response) => {
 
 const verify_credentials = (userForms, passwordForms, userDB, passwordDB) => {
     if ((userForms == userDB) && (passwordForms == passwordDB)) {
-        window.location.href = "https://products-manager-ten.vercel.app/home/products";
+        window.location.href = "/home/products";
     } else {
         console.log("error");
     }

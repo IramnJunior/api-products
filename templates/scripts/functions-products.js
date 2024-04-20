@@ -25,7 +25,7 @@ data.forEach(data => {
                 const price = document.getElementById("price-id-add").value;
                 const price_tax = document.getElementById("price-tax-id-add").value;
 
-                await axios.post("http://products-manager-ten.vercel.app/add/", {
+                await axios.post("/add/", {
                     name: `${name}`,
                     description: `${description}`,
                     price: `${price}`,
@@ -57,7 +57,7 @@ data.forEach(data => {
                 const price = document.getElementById("price-id-edit").value;
                 const price_tax = document.getElementById("price-tax-id-edit").value;
 
-                await axios.put(`http://products-manager-ten.vercel.app/edit/${id}`, {
+                await axios.put(`/edit/${id}`, {
                     name: `${name}`,
                     description: `${description}`,
                     price: `${price}`,
@@ -85,7 +85,7 @@ data.forEach(data => {
             {
                 const id = document.getElementById("input-id-delete").value;
 
-                await axios.delete(`http://products-manager-ten.vercel.app/delete/${id}`)
+                await axios.delete(`/delete/${id}`)
                            .then(response => {
                             console.log(`Deleted data with ID: ${id}`);
                            })
@@ -104,7 +104,7 @@ data.forEach(data => {
 
 
 async function get_products_data() {
-    await axios.get("http://products-manager-ten.vercel.app/get/products/")
+    await axios.get("/get/products/")
     .then(response => {
         const data = response.data
         document.getElementById('products-id').innerHTML = ''
